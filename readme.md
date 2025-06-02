@@ -1,4 +1,6 @@
-# Laporan Proyek Machine Learning - [Nama Anda]
+# Laporan Proyek Machine Learning - Arya Ulya Krisna
+
+### [github - aryaulyakrisna](https://github.com/aryaulyakrisna)
 
 ## Project Overview
 
