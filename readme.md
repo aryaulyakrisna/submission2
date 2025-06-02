@@ -58,6 +58,7 @@ Tahapan persiapan data yang dilakukan adalah sebagai berikut:
      books = books.dropna(subset=['Year-Of-Publication'])
      books['Year-Of-Publication'] = books['Year-Of-Publication'].astype(int)
    ```
+   
    - Mengatasi *DtypeWarning* pada *Year-Of-Publication* dengan mengonversi kolom ke tipe numerik menggunakan `pd.to_numeric` dengan parameter `errors='coerce'` untuk mengubah nilai non-numerik menjadi *NaN*.
    - Menghapus baris dengan nilai *NaN* pada *Year-Of-Publication* menggunakan `dropna`.
    - Mengonversi *Year-Of-Publication* ke tipe integer untuk konsistensi.
@@ -69,9 +70,11 @@ Tahapan persiapan data yang dilakukan adalah sebagai berikut:
    - Menghapus seluruh baris null dan data duplikat
 
 2. **Pemrosesan Teks**:
+   
    ```python
      books_df = pd.merge(ratings, books, on='ISBN', how='left')
    ```
+   
    - Menggabungkan kolom *Book-Title* dan *Book-Author* untuk membentuk fitur teks yang akan diproses.
 
    ```python
@@ -84,11 +87,17 @@ Tahapan persiapan data yang dilakukan adalah sebagai berikut:
        'book_rating': books_df['Book-Rating']
       })
    ```
+   
    - Membuat dataset baru fix_books_df.
+     
+   ![Screenshot 2025-06-02 145452](https://github.com/user-attachments/assets/bc8a3bfb-35cb-4970-8cc5-13518acb8bf4)
 
    - Menggunakan *TfidfVectorizer* dari *scikit-learn* untuk mengubah data teks menjadi matriks *TF-IDF*, sebagaimana dilakukan dalam penelitian Ardiansyah et al. (2023) untuk menghitung bobot kata.
 
-3. **Pembuatan Matriks Kesamaan**:
+4. **Pembuatan Matriks Kesamaan**:
+   
+   ![Screenshot 2025-06-02 145724](https://github.com/user-attachments/assets/3e164d09-1030-42d3-81a9-36d0dabce995)
+   
    - Menghitung matriks *Cosine Similarity* menggunakan *cosine_similarity* dari *scikit-learn* untuk mengukur kesamaan antar buku berdasarkan vektor *TF-IDF*.
 
 **Alasan Data Preparation**:
@@ -123,23 +132,45 @@ Untuk buku *The Unicorn Solution*, sistem merekomendasikan:
 
 ## Evaluation
 
-### Metrik Evaluasi
+## Metrik Evaluasi
 Metrik yang digunakan adalah *precision*, *recall*, dan *F1-score*, dihitung berdasarkan matriks *Cosine Similarity* dengan ambang batas 0.5. Metrik ini dipilih karena sesuai untuk mengevaluasi relevansi rekomendasi, meskipun penelitian Ardiansyah et al. (2023) tidak menyebutkan metrik evaluasi spesifik selain skor *Cosine Similarity*.
 
-- **Precision**: Proporsi rekomendasi yang relevan dari semua rekomendasi yang diberikan.
-  \[
-  \text{Precision} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Positives}}
-  \]
-- **Recall**: Proporsi item relevan yang direkomendasikan dari semua item yang seharusnya relevan.
-  \[
-  \text{Recall} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}}
-  \]
-- **F1-Score**: Rata-rata harmonik dari *precision* dan *recall*.
-  \[
-  \text{F1-Score} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}
-  \]
+## 1. **Precision (Presisi)**
+*Precision* mengukur proporsi rekomendasi yang relevan dari semua rekomendasi yang diberikan oleh sistem. Dalam konteks ini, "relevan" berarti buku yang direkomendasikan memiliki skor kesamaan kosinus di atas *threshold* (0.5) sesuai dengan *ground truth*.
+
+- **Rumus**:
+  
+  $$ \text{Precision} = \frac{\text{TP}}{\text{TP} + \text{FP}} $$
+  
+  - *True Positives (TP)*: Jumlah pasangan buku yang diprediksi mirip (skor ≥ 0.5) dan memang mirip menurut *ground truth*.
+  - *False Positives (FP)*: Jumlah pasangan buku yang diprediksi mirip, tetapi sebenarnya tidak mirip menurut *ground truth*.
+
+- **Penjelasan**: Dalam evaluasi, *precision* se personally 1.0, artinya semua buku yang direkomendasikan sebagai "mirip" memang benar-benar mirip menurut *ground truth*. Tidak ada rekomendasi yang salah (*false positive*).
+
+## 2. **Recall (Recall)**
+*Recall* mengukur proporsi buku yang benar-benar relevan (mirip) yang berhasil direkomendasikan oleh sistem dari semua buku yang seharusnya relevan menurut *ground truth*.
+
+- **Rumus**:
+
+  $$ \text{Recall} = \frac{\text{TP}}{\text{TP} + \text{FN}} $$
+
+  - *True Positives (TP)*: Seperti di atas, jumlah pasangan buku yang diprediksi mirip dan memang mirip.
+  - *False Negatives (FN)*: Jumlah pasangan buku yang sebenarnya mirip menurut *ground truth*, tetapi tidak diprediksi mirip oleh sistem (skor < 0.5).
+
+- **Penjelasan**: Nilai *recall* 1.0 menunjukkan bahwa sistem berhasil menangkap semua pasangan buku yang seharusnya mirip menurut *ground truth*. Tidak ada pasangan yang relevan yang terlewat (*false negative*).
+
+## 3. **F1-Score**
+*F1-score* adalah rata-rata harmonik dari *precision* dan *recall*, memberikan keseimbangan antara kedua metrik tersebut. Metrik ini berguna untuk mengevaluasi performa model secara keseluruhan, terutama jika *precision* dan *recall* memiliki nilai yang tidak seimbang.
+
+- **Rumus**:
+  $$ \text{F1-score} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} $$
+
+- **Penjelasan**: Dengan *precision* dan *recall* masing-masing 1.0, *F1-score* juga bernilai 1.0. Ini menunjukkan performa model yang sempurna dalam evaluasi ini, karena tidak ada kesalahan dalam mengidentifikasi buku yang mirip.
 
 ### Hasil Evaluasi
+
+![Screenshot 2025-06-02 150406](https://github.com/user-attachments/assets/24fc147f-85de-4f95-ad92-754a89d641d6)
+
 Hasil evaluasi menunjukkan:
 - **Precision**: 1.0
 - **Recall**: 1.0
