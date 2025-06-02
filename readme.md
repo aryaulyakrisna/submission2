@@ -165,6 +165,7 @@ Metrik yang digunakan adalah *precision*, *recall*, dan *F1-score*, dihitung ber
 *F1-score* adalah rata-rata harmonik dari *precision* dan *recall*, memberikan keseimbangan antara kedua metrik tersebut. Metrik ini berguna untuk mengevaluasi performa model secara keseluruhan, terutama jika *precision* dan *recall* memiliki nilai yang tidak seimbang.
 
 - **Rumus**:
+  
   $$ \text{F1-score} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} $$
 
 - **Penjelasan**: Dengan *precision* dan *recall* masing-masing 1.0, *F1-score* juga bernilai 1.0. Ini menunjukkan performa model yang sempurna dalam evaluasi ini, karena tidak ada kesalahan dalam mengidentifikasi buku yang mirip.
