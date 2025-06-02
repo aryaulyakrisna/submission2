@@ -154,7 +154,7 @@ Metrik yang digunakan adalah *precision*, *recall*, dan *F1-score*, dihitung ber
 
 - **Rumus**:
 
-  $$ \text{Recall} = \frac{\text{TP}}{\text{TP} + \text{FN}} $$
+  TP / (TP + FN)
 
   - *True Positives (TP)*: Seperti di atas, jumlah pasangan buku yang diprediksi mirip dan memang mirip.
   - *False Negatives (FN)*: Jumlah pasangan buku yang sebenarnya mirip menurut *ground truth*, tetapi tidak diprediksi mirip oleh sistem (skor < 0.5).
@@ -166,7 +166,7 @@ Metrik yang digunakan adalah *precision*, *recall*, dan *F1-score*, dihitung ber
 
 - **Rumus**:
   
-  $$ \text{F1-score} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} $$
+  F1-score = 2 * (Precision * Recall) / (Precision + Recall)
 
 - **Penjelasan**: Dengan *precision* dan *recall* masing-masing 1.0, *F1-score* juga bernilai 1.0. Ini menunjukkan performa model yang sempurna dalam evaluasi ini, karena tidak ada kesalahan dalam mengidentifikasi buku yang mirip.
 
