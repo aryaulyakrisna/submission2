@@ -61,7 +61,6 @@ Proyek ini menggunakan *Book Recommendation Dataset* dari Kaggle, yang tersedia 
 
 Tahapan persiapan data yang dilakukan adalah sebagai berikut:
 
-1. **Pemrosesan & Pemrosesan Data**:
    ``` python
      books['Year-Of-Publication'] = pd.to_numeric(books['Year-Of-Publication'], errors='coerce')
      books = books.dropna(subset=['Year-Of-Publication'])
@@ -106,7 +105,16 @@ Tahapan persiapan data yang dilakukan adalah sebagai berikut:
    ```
    
    - Membuat dataset baru fix_books_df.
-     
+
+**Alasan Data Preparation**:
+- Pembersihan data & Pemrosesan Data diperlukan untuk memastikan konsistensi dan menghilangkan nilai yang hilang, seperti yang dilakukan dalam preprocessing pada penelitian Ardiansyah et al. (2023).
+
+## Modeling
+
+Sistem rekomendasi dibangun menggunakan pendekatan *content-based filtering* dengan algoritma *TF-IDF* dan *Cosine Similarity*, sebagaimana diimplementasikan dalam penelitian Ardiansyah et al. (2023). Berikut adalah detailnya:
+
+1. **Mengbah Dataset Menjadi Vektor**
+   
    ![Screenshot 2025-06-02 145452](https://github.com/user-attachments/assets/bc8a3bfb-35cb-4970-8cc5-13518acb8bf4)
 
    - Menggunakan *TfidfVectorizer* dari *scikit-learn* untuk mengubah data teks menjadi matriks *TF-IDF*, sebagaimana dilakukan dalam penelitian Ardiansyah et al. (2023) untuk menghitung bobot kata.
@@ -116,35 +124,23 @@ Tahapan persiapan data yang dilakukan adalah sebagai berikut:
    ![Screenshot 2025-06-02 145724](https://github.com/user-attachments/assets/3e164d09-1030-42d3-81a9-36d0dabce995)
    
    - Menghitung matriks *Cosine Similarity* menggunakan *cosine_similarity* dari *scikit-learn* untuk mengukur kesamaan antar buku berdasarkan vektor *TF-IDF*.
-
-**Alasan Data Preparation**:
-- Pembersihan data & Pemrosesan Data diperlukan untuk memastikan konsistensi dan menghilangkan nilai yang hilang, seperti yang dilakukan dalam preprocessing pada penelitian Ardiansyah et al. (2023). *TF-IDF* memungkinkan representasi numerik dari metadata buku, yang penting untuk perhitungan kesamaan.
-- Matriks *Cosine Similarity* digunakan untuk mengidentifikasi buku-buku yang mirip, sesuai dengan pendekatan yang dijelaskan dalam penelitian referensi.
-
-## Modeling
-
-Sistem rekomendasi dibangun menggunakan pendekatan *content-based filtering* dengan algoritma *TF-IDF* dan *Cosine Similarity*, sebagaimana diimplementasikan dalam penelitian Ardiansyah et al. (2023). Berikut adalah detailnya:
-
-1. **Fungsi Rekomendasi**:
+     
+3. **Fungsi Rekomendasi**:
    - Fungsi `book_recommendation` menerima judul buku sebagai input dan mengembalikan *k* buku yang paling mirip berdasarkan skor *Cosine Similarity*.
    - Prosesnya melibatkan pengambilan skor kesamaan dari matriks *cosine_sim_df*, mengurutkan skor dari tertinggi ke terendah, dan mengembalikan *k* buku teratas (kecuali buku input).
 
-2. **Implementasi**:
+4. **Implementasi**:
    - Hasil pemrosesan data yaitu matriks *TF-IDF* dibuat dari kombinasi *Book-Title* dan *Book-Author* untuk menangkap karakteristik konten buku.
    - *Cosine Similarity* dihitung untuk membandingkan vektor *TF-IDF* antar buku, menghasilkan skor kesamaan seperti 0.358 dalam penelitian Ardiansyah et al. (2023).
    - Contoh output untuk buku *The Unicorn Solution* menghasilkan rekomendasi seperti *Facing the Fire: Experiencing and Expressing Anger Appropriately* oleh John Lee dan *Writ Denied* oleh Lee.
 
-3. **Kelebihan dan Kekurangan**:
+5. **Kelebihan dan Kekurangan**:
    - **Kelebihan**: Sistem ini tidak memerlukan data pengguna, hanya metadata buku, sehingga cocok untuk perpustakaan dengan informasi terbatas. Efektif untuk merekomendasikan buku berdasarkan kesamaan konten, seperti yang ditunjukkan dalam penelitian referensi.
    - **Kekurangan**: Terbatas pada fitur metadata yang tersedia (judul dan penulis), sehingga tidak dapat menangkap preferensi pengguna yang lebih kompleks.
 
 **Top-N Recommendation**:
 Untuk buku *The Unicorn Solution*, sistem merekomendasikan:
-1. *Facing the Fire: Experiencing and Expressing Anger Appropriately* oleh John Lee
-2. *Writ Denied* oleh Lee
-3. *Professor and the Madman* oleh Lee Paul
-4. *Murder at the Blue Owl* oleh Lee Martin
-5. *Fair and Tender Ladies* oleh Lee Smith
+![Screenshot 2025-06-05 120839](https://github.com/user-attachments/assets/8d1634dd-e773-4caa-bff9-ae0dd1701ca7)
 
 ## Evaluation
 
