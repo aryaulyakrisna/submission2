@@ -13,16 +13,15 @@ Sistem rekomendasi buku merupakan solusi penting untuk membantu pengguna menemuk
 
 ### Problem Statements
 1. Pembaca mengalami kesulitan menemukan buku yang sesuai dengan minat mereka karena keterbatasan informasi tentang koleksi buku.
-2. Kurangnya sistem rekomendasi yang efektif dapat mengurangi minat baca.
-3. Perlu adanya metode evaluasi untuk memastikan rekomendasi buku yang diberikan relevan dan akurat.
+2. Perlu adanya metode evaluasi untuk memastikan rekomendasi buku yang diberikan relevan dan akurat.
 
 ### Goals
 1. Mengembangkan sistem rekomendasi buku berbasis *content-based filtering* untuk memberikan rekomendasi berdasarkan metadata buku seperti judul dan penulis.
 2. Mengevaluasi performa sistem rekomendasi menggunakan metrik *precision*, *recall*, dan *F1-score* untuk memastikan kualitas rekomendasi.
 
 ### Solution Approach
-- Menerapkan algoritma *TF-IDF* untuk mengubah metadata buku menjadi representasi numerik, diikuti dengan *Cosine Similarity* untuk menghitung kesamaan antar buku, sebagaimana digunakan dalam penelitian Ardiansyah et al. (2023).
-- Mengevaluasi sistem menggunakan metrik *precision*, *recall*, dan *F1-score* untuk mengukur relevansi rekomendasi.
+1. Menerapkan algoritma *TF-IDF* untuk mengubah metadata buku menjadi representasi numerik, diikuti dengan *Cosine Similarity* untuk menghitung kesamaan antar buku, sebagaimana digunakan dalam penelitian Ardiansyah et al. (2023).
+2. Mengevaluasi sistem menggunakan metrik *precision*, *recall*, dan *F1-score* untuk mengukur relevansi rekomendasi.
 
 ## Data Understanding
 
@@ -45,13 +44,18 @@ Proyek ini menggunakan *Book Recommendation Dataset* dari Kaggle, yang tersedia 
    - **Book-Rating**: Nilai rating buku (skala 0-10, integer).
   
 ### Kondisi Dataset
-- Books.csv dan Ratings.csv idak memiliki baris berisi null value.
 
 ![Screenshot 2025-06-04 160346](https://github.com/user-attachments/assets/4da4f9a3-d7cb-4217-8393-b36edc2437dd)
 - Kedua dataset tidak memiliki duplicated row
-  
+
+![Screenshot 2025-06-07 143552](https://github.com/user-attachments/assets/e340eb42-9ec8-4877-adc6-5d73bdc54657)
+- Dataframe books berisi kolom bertipe object kecuali Year-Of-Publication, tampak beberapa nilai null pada kolom Book-Author dan Publisher.
+
+![Screenshot 2025-06-07 143943](https://github.com/user-attachments/assets/64246a17-b5c8-4a50-a6ca-a1e17e200638)
+- Dataframe ratings berisi kolom bertipe int64 dan object, tanpa nilai null.
+
 ![Screenshot 2025-06-04 155501](https://github.com/user-attachments/assets/e8820e16-b708-42ca-8eef-378541be565d)
-- Setelah dataset digabungkan berdasarkan ISBN, dataset memiliki 118648 komlom null pada kolom Book-Title Book-Authorn Year-Of-Publication Publisher.
+- Setelah dataset digabungkan berdasarkan ISBN, dataset memiliki 118648 kolom null pada kolom Book-Title Book-Authorn Year-Of-Publication Publisher.
 
 ### Exploratory Data Analysis
 - Kolom *Year-Of-Publication* pada *Books.csv* memiliki masalah tipe data, dengan beberapa entri berupa string (misalnya, nama penerbit yang salah tempat), menyebabkan *DtypeWarning* saat memuat data.
@@ -61,6 +65,7 @@ Proyek ini menggunakan *Book Recommendation Dataset* dari Kaggle, yang tersedia 
 
 Tahapan persiapan data yang dilakukan adalah sebagai berikut:
 
+1. **Pemrosesan & Pemrosesan Data**:
    ``` python
      books['Year-Of-Publication'] = pd.to_numeric(books['Year-Of-Publication'], errors='coerce')
      books = books.dropna(subset=['Year-Of-Publication'])
@@ -75,23 +80,26 @@ Tahapan persiapan data yang dilakukan adalah sebagai berikut:
       books.drop(labels=['Image-URL-S', 'Image-URL-M', 'Image-URL-L'], axis=1, inplace=True)
    ```
    - Menghapus kolom Image-URL-S, Image-URL-M, Image-URL-L
+   
   
    ```python
       books_df = pd.merge(ratings, books, on='ISBN', how='left')
    ```
-   
    - Menggabungkan kolom *Book-Title* dan *Book-Author* untuk membentuk fitur teks yang akan diproses.
+   
   
-   ``` python
-      books_df = books_df.sample(10000, random_state=52, ignore_index=True)
-   ```
-   - Mengambil 1000 sampel acak dari dataset agar tidak mmemberati proses komputasi 
-
    ``` python
        books_df = books_df.dropna()
        books_df = books_df.drop_duplicates('ISBN')
    ```
    - Menghapus seluruh baris null dan data duplikat
+     
+  
+   ``` python
+      books_df = books_df.sample(10000, random_state=52, ignore_index=True)
+   ```
+   - Mengambil 10000 sampel acak dari dataset agar tidak mmemberati proses komputasi
+     
    
    ```python
       fix_books_df = pd.DataFrame({
@@ -102,44 +110,47 @@ Tahapan persiapan data yang dilakukan adalah sebagai berikut:
        'publisher': books_df['Publisher'],
        'book_rating': books_df['Book-Rating']
       })
-   ```
-   
+   ```  
    - Membuat dataset baru fix_books_df.
+  
+**TF-IDF**: TF-IDF (Term Frequency-Inverse Document Frequency) adalah teknik untuk mengukur pentingnya kata dalam dokumen relatif terhadap korpus dengan menggabungkan frekuensi kata dalam dokumen (TF) dan kelangkaan kata di seluruh korpus (IDF). Dalam sistem rekomendasi berbasis *content-based filtering*, TF-IDF mengubah metadata buku (judul dan penulis) menjadi vektor numerik, memberikan bobot tinggi pada kata-kata spesifik dan rendah pada kata umum, sehingga memungkinkan perhitungan kesamaan antar buku berdasarkan konten.
 
+   ![Screenshot 2025-06-02 145452](https://github.com/user-attachments/assets/bc8a3bfb-35cb-4970-8cc5-13518acb8bf4)
+   - Menggunakan *TfidfVectorizer* dari *scikit-learn* untuk mengubah data teks menjadi matriks *TF-IDF*, sebagaimana dilakukan dalam penelitian Ardiansyah et al. (2023) untuk menghitung bobot kata.
+     
 **Alasan Data Preparation**:
 - Pembersihan data & Pemrosesan Data diperlukan untuk memastikan konsistensi dan menghilangkan nilai yang hilang, seperti yang dilakukan dalam preprocessing pada penelitian Ardiansyah et al. (2023).
+- *TF-IDF* memungkinkan representasi numerik dari metadata buku, yang penting untuk perhitungan kesamaan.
 
 ## Modeling
 
 Sistem rekomendasi dibangun menggunakan pendekatan *content-based filtering* dengan algoritma *TF-IDF* dan *Cosine Similarity*, sebagaimana diimplementasikan dalam penelitian Ardiansyah et al. (2023). Berikut adalah detailnya:
 
-1. **Mengbah Dataset Menjadi Vektor**
-   
-   ![Screenshot 2025-06-02 145452](https://github.com/user-attachments/assets/bc8a3bfb-35cb-4970-8cc5-13518acb8bf4)
+**Cosine Similarity**: *Cosine Similarity* mengukur kesamaan antara dua vektor dengan menghitung kosinus sudut di antara keduanya, menghasilkan nilai dari -1 (berbeda) hingga 1 (mirip). Dalam sistem rekomendasi, digunakan untuk membandingkan vektor TF-IDF antar buku, membentuk matriks kesamaan, dan merekomendasikan buku-buku dengan skor kesamaan tertinggi berdasarkan metadata, efektif untuk data berdimensi tinggi tanpa mempedulikan panjang dokumen.
 
-   - Menggunakan *TfidfVectorizer* dari *scikit-learn* untuk mengubah data teks menjadi matriks *TF-IDF*, sebagaimana dilakukan dalam penelitian Ardiansyah et al. (2023) untuk menghitung bobot kata.
-
-2. **Pembuatan Matriks Kesamaan**:
+1. **Pembuatan Matriks Kesamaan**:
    
    ![Screenshot 2025-06-02 145724](https://github.com/user-attachments/assets/3e164d09-1030-42d3-81a9-36d0dabce995)
    
    - Menghitung matriks *Cosine Similarity* menggunakan *cosine_similarity* dari *scikit-learn* untuk mengukur kesamaan antar buku berdasarkan vektor *TF-IDF*.
      
-3. **Fungsi Rekomendasi**:
+2. **Fungsi Rekomendasi**:
    - Fungsi `book_recommendation` menerima judul buku sebagai input dan mengembalikan *k* buku yang paling mirip berdasarkan skor *Cosine Similarity*.
    - Prosesnya melibatkan pengambilan skor kesamaan dari matriks *cosine_sim_df*, mengurutkan skor dari tertinggi ke terendah, dan mengembalikan *k* buku teratas (kecuali buku input).
 
-4. **Implementasi**:
+3. **Implementasi**:
    - Hasil pemrosesan data yaitu matriks *TF-IDF* dibuat dari kombinasi *Book-Title* dan *Book-Author* untuk menangkap karakteristik konten buku.
    - *Cosine Similarity* dihitung untuk membandingkan vektor *TF-IDF* antar buku, menghasilkan skor kesamaan seperti 0.358 dalam penelitian Ardiansyah et al. (2023).
    - Contoh output untuk buku *The Unicorn Solution* menghasilkan rekomendasi seperti *Facing the Fire: Experiencing and Expressing Anger Appropriately* oleh John Lee dan *Writ Denied* oleh Lee.
 
-5. **Kelebihan dan Kekurangan**:
+4. **Kelebihan dan Kekurangan**:
    - **Kelebihan**: Sistem ini tidak memerlukan data pengguna, hanya metadata buku, sehingga cocok untuk perpustakaan dengan informasi terbatas. Efektif untuk merekomendasikan buku berdasarkan kesamaan konten, seperti yang ditunjukkan dalam penelitian referensi.
    - **Kekurangan**: Terbatas pada fitur metadata yang tersedia (judul dan penulis), sehingga tidak dapat menangkap preferensi pengguna yang lebih kompleks.
 
 **Top-N Recommendation**:
+
 Untuk buku *The Unicorn Solution*, sistem merekomendasikan:
+
 ![Screenshot 2025-06-05 120839](https://github.com/user-attachments/assets/8d1634dd-e773-4caa-bff9-ae0dd1701ca7)
 
 ## Evaluation
